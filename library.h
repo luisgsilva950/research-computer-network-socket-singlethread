@@ -1,6 +1,0 @@
-#ifndef COMPUTER_NETWORK_LIBRARY_H
-#define COMPUTER_NETWORK_LIBRARY_H
-
-void hello(void);
-
-#endif //COMPUTER_NETWORK_LIBRARY_H

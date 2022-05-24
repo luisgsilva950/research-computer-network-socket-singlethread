@@ -27,7 +27,7 @@ enum Equipments {
     GUINDAST = 2,
     PONTE_ROLANTE = 3,
     EMPILHADEIRA = 4,
-    NOT_FOUND = 8888
+    NOT_FOUND = 888
 };
 
 static int SERVER_EQUIPMENTS_COUNT = 0;
@@ -146,8 +146,10 @@ struct socket_context initialize_server_socket(char *protocol, char *port) {
 }
 
 int *get_sensor_ids_from_message(char *message) {
-    char string_aux[BUFFER_SIZE_IN_BYTES] = "";
+    char *string_aux = malloc(BUFFER_SIZE_IN_BYTES);
+    memset(string_aux, 0, BUFFER_SIZE_IN_BYTES);
     static int sensor_ids[3] = {NOT_FOUND, NOT_FOUND, NOT_FOUND};
+    memset(sensor_ids, 0, 3 * sizeof(int));
     strcpy(string_aux, message);
     char *token = strtok(string_aux, " ");
     int is_equipment_id_now = 0;
@@ -157,7 +159,7 @@ int *get_sensor_ids_from_message(char *message) {
             sensor_ids[count_sensors] = atoi(token);
             count_sensors = count_sensors + 1;
         }
-        if (count_sensors == 3) break;
+        if (count_sensors == 2) break;
         if (is_equal(token, "in")) is_equipment_id_now = 1;
         token = strtok(NULL, " ");
     }
@@ -216,11 +218,11 @@ int *get_sensors_by_equipment(struct order_context *equipments, int equipment_id
 }
 
 char *get_add_success_response(int *sensors_added) {
-    static char response[BUFFER_SIZE_IN_BYTES] = "";
+    static char response[BUFFER_SIZE_IN_BYTES] = "sensor";
     memset(response, 0, BUFFER_SIZE_IN_BYTES);
     strcat(response, "sensor");
     int *sensor;
-    for (sensor = sensors_added; (int) *sensor != NOT_FOUND; sensor++) {
+    for (sensor = sensors_added; (int) *sensor != '\0'; sensor++) {
         char sensor_as_string[4] = "  ";
         sprintf(sensor_as_string, " 0%d", (int) *sensor);
         strcat(response, sensor_as_string);
@@ -230,16 +232,29 @@ char *get_add_success_response(int *sensors_added) {
 }
 
 char *get_remove_success_response(int *sensors_removed) {
-    static char response[BUFFER_SIZE_IN_BYTES] = "sensor ";
+    static char response[BUFFER_SIZE_IN_BYTES] = "sensor";
     memset(response, 0, BUFFER_SIZE_IN_BYTES);
-    strcat(response, "sensor ");
+    strcat(response, "sensor");
     int *sensor;
-    for (sensor = sensors_removed; (int) *sensor != NOT_FOUND; sensor++) {
+    for (sensor = sensors_removed; (int) *sensor != '\0'; sensor++) {
         char sensor_as_string[4] = "  ";
         sprintf(sensor_as_string, " 0%d", (int) *sensor);
         strcat(response, sensor_as_string);
     }
     strcat(response, " removed\n");
+    return response;
+}
+
+char *get_list_success_response(int *sensors_removed) {
+    static char response[BUFFER_SIZE_IN_BYTES] = "sensor";
+    memset(response, 0, BUFFER_SIZE_IN_BYTES);
+    int *sensor;
+    for (sensor = sensors_removed; (int) *sensor != '\0'; sensor++) {
+        char sensor_as_string[4] = "   ";
+        sprintf(sensor_as_string, "0%d ", (int) *sensor);
+        strcat(response, sensor_as_string);
+    }
+    strcat(response, "\n");
     return response;
 }
 
@@ -315,6 +330,19 @@ void handle_remove_message(struct sockaddr *client_socket_address, int client_so
         }
         remove_sensor_from_equipment(equipments, (int) *sensor_id, equipment_id);
         SERVER_EQUIPMENTS_COUNT = SERVER_EQUIPMENTS_COUNT - 1;
+    }
+    const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
+    int count = send(client_socket, response, strlen(response) + 1, 0);
+    printf("Message send for %s: %d bytes: %s\n", client_socket_ip, (int) count, response);
+    if (count != strlen(response) + 1) error("Error sending response message...");
+    close(client_socket);
+}
+
+void handle_list_message(struct sockaddr *client_socket_address, int client_socket, struct order_context *equipments,
+                         int *sensor_ids, int equipment_id) {
+    char *response = get_list_success_response(sensor_ids);
+    if (sensor_ids == NULL) {
+        response = "none";
     }
     const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
     int count = send(client_socket, response, strlen(response) + 1, 0);

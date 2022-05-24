@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
     struct socket_context context = initialize_server_socket(argv[1], argv[2]);
     int _socket = context.socket;
     while (1) {
+        int *sensor_ids = NULL;
         struct sockaddr_storage client_socket_storage;
         struct sockaddr *client_socket_address = (struct sockaddr *) (&client_socket_storage);
         int client_socket_address_len = sizeof(*client_socket_address);
@@ -24,7 +25,7 @@ int main(int argc, char *argv[]) {
         char buffer_copy[BUFFER_SIZE_IN_BYTES] = {};
         strcpy(buffer_copy, buffer);
         const char *command = strtok(buffer_copy, " ");
-        int *sensor_ids = get_sensor_ids_from_message(buffer);
+        sensor_ids = get_sensor_ids_from_message(buffer);
         int equipment_id = get_equipment_id_from_message(buffer);
         if (is_equal(command, ADD)) {
             handle_add_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
@@ -33,7 +34,7 @@ int main(int argc, char *argv[]) {
             handle_remove_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
         }
         if (is_equal(command, LIST)) {
-            handle_add_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
+            handle_list_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
         }
 //        if (is_equal(command, REMOVE)) {
 //            const int sensor_id = (int) buf[11] - ASCII_INTEGER_START_INDEX;

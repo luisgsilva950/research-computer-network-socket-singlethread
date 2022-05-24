@@ -245,12 +245,13 @@ char *get_remove_success_response(int *sensors_removed) {
     return response;
 }
 
-char *get_list_success_response(int *sensors_removed) {
-    static char response[BUFFER_SIZE_IN_BYTES] = "sensor";
+char *get_list_success_response(int *sensors_in_equipment) {
+    if (sensors_in_equipment == NULL) return "";
+    static char response[BUFFER_SIZE_IN_BYTES] = "";
     memset(response, 0, BUFFER_SIZE_IN_BYTES);
     int *sensor;
-    for (sensor = sensors_removed; (int) *sensor != '\0'; sensor++) {
-        char sensor_as_string[4] = "   ";
+    for (sensor = sensors_in_equipment; (int) *sensor != '\0'; sensor++) {
+        char sensor_as_string[4] = "  ";
         sprintf(sensor_as_string, "0%d ", (int) *sensor);
         strcat(response, sensor_as_string);
     }
@@ -339,10 +340,13 @@ void handle_remove_message(struct sockaddr *client_socket_address, int client_so
 }
 
 void handle_list_message(struct sockaddr *client_socket_address, int client_socket, struct order_context *equipments,
-                         int *sensor_ids, int equipment_id) {
-    char *response = get_list_success_response(sensor_ids);
+                         int equipment_id) {
+    int *sensor_ids = get_sensors_by_equipment(equipments, equipment_id);
+    char *response;
     if (sensor_ids == NULL) {
         response = "none";
+    } else {
+        response = get_list_success_response(sensor_ids);
     }
     const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
     int count = send(client_socket, response, strlen(response) + 1, 0);

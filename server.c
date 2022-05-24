@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
             handle_remove_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
         }
         if (is_equal(command, LIST)) {
-            handle_list_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
+            handle_list_message(client_socket_address, client_socket, equipments, equipment_id);
         }
 //        if (is_equal(command, REMOVE)) {
 //            const int sensor_id = (int) buf[11] - ASCII_INTEGER_START_INDEX;

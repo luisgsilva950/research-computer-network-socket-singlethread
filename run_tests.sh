@@ -1,2 +1,6 @@
 FILE=$1
-client 127.0.0.1 5501 < ./tests/$FILE.in
+server v4 5501 &>/dev/null &
+client 127.0.0.1 5501 <./tests/$FILE.in
+
+server v6 5501 &>/dev/null &
+client ::1 5501 <./tests/$FILE.in

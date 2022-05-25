@@ -75,7 +75,7 @@ enum Boolean parse_client_address(const char *raw_address, const char *raw_port,
         ipv4_socket->sin_port = PORT_NUMBER;
         ipv4_socket->sin_family = AF_INET;
         ipv4_socket->sin_addr = ipv4_address;
-        return TRUE;
+        return sizeof(struct sockaddr_in);
     }
     struct in6_addr ipv6_address;
     if (inet_pton(AF_INET6, raw_address, &ipv6_address)) {
@@ -83,7 +83,7 @@ enum Boolean parse_client_address(const char *raw_address, const char *raw_port,
         ipv6_socket->sin6_port = PORT_NUMBER;
         ipv6_socket->sin6_family = AF_INET6;
         memcpy(&(ipv6_socket->sin6_addr), &ipv6_address, sizeof(ipv6_address));
-        return TRUE;
+        return sizeof(struct sockaddr_in6);
     }
     return FALSE;
 }
@@ -99,27 +99,25 @@ int parse_server_address(const char *protocol, const char *raw_port, struct sock
         addr4->sin_family = AF_INET;
         addr4->sin_addr.s_addr = INADDR_ANY;
         addr4->sin_port = port;
-        return TRUE;
-    }
-    if (is_equal(protocol, "v6")) {
+        return sizeof(struct sockaddr_in);
+    } else if (is_equal(protocol, "v6")) {
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) storage;
         addr6->sin6_family = AF_INET6;
         addr6->sin6_addr = in6addr_any;
         addr6->sin6_port = port;
-        return TRUE;
+        return sizeof(struct sockaddr_in6);
     }
     return FALSE;
 }
 
 struct socket_context initialize_client_socket(char *address, char *port) {
     struct sockaddr_storage storage;
-    int is_address_ok = parse_client_address(address, port, &storage);
-    if (!is_address_ok) print_client_usage_pattern();
+    int protocol_struct_length = parse_client_address(address, port, &storage);
+    if (protocol_struct_length == FALSE) print_client_usage_pattern();
     int _socket = socket(storage.ss_family, SOCK_STREAM, 0);
     if (_socket < FALSE) error("Error opening socket...");
     struct sockaddr *socket_address = (struct sockaddr *) &storage;
-    int socket_address_len = sizeof(*socket_address);
-    int connection_status_code = connect(_socket, socket_address, socket_address_len);
+    int connection_status_code = connect(_socket, socket_address, protocol_struct_length);
     if (connection_status_code < FALSE) error("Error connecting...");
     struct socket_context context;
     context.socket_address = *socket_address;
@@ -129,14 +127,14 @@ struct socket_context initialize_client_socket(char *address, char *port) {
 
 struct socket_context initialize_server_socket(char *protocol, char *port) {
     struct sockaddr_storage storage;
-    int parse_server_code = parse_server_address(protocol, port, &storage);
-    if (parse_server_code == FALSE) print_server_usage_pattern();
-    struct sockaddr *socket_address = (struct sockaddr *) &storage;
+    int protocol_struct_length = parse_server_address(protocol, port, &storage);
+    if (protocol_struct_length == FALSE) print_server_usage_pattern();
     int _socket = socket(storage.ss_family, SOCK_STREAM, 0);
     int enabled = 1;
     int set_socket_opt_code = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(int));
     if (set_socket_opt_code != FALSE) error("Error setting socket opt...");
-    int bind_server_code = bind(_socket, socket_address, sizeof(*socket_address));
+    struct sockaddr *socket_address = (struct sockaddr *) (&storage);
+    int bind_server_code = bind(_socket, socket_address, protocol_struct_length);
     if (bind_server_code != FALSE) error("Error binding server...");
     int listen_server_code = listen(_socket, SERVER_LISTENING_SIZE);
     if (listen_server_code != FALSE) error("Error configuring server listening...");
@@ -268,7 +266,7 @@ char *get_read_success_response(int *sensors) {
     int *sensor;
     for (sensor = sensors; (int) *sensor != '\0'; sensor++) {
         char sensor_as_string[7] = "  ";
-        sprintf(sensor_as_string, "%.2f ",(((float) rand() / (float) (RAND_MAX)) * 10));
+        sprintf(sensor_as_string, "%.2f ", (((float) rand() / (float) (RAND_MAX)) * 10));
         strcat(response, sensor_as_string);
     }
     strcat(response, "\n");

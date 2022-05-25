@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         char buffer[BUFFER_SIZE_IN_BYTES] = {};
         memset(buffer, 0, BUFFER_SIZE_IN_BYTES);
         size_t count = recv(client_socket, buffer, BUFFER_SIZE_IN_BYTES - 1, 0);
-        printf("Message received from %s: %d bytes: %s\n", client_socket_ip, (int) count, buffer);
+        printf("Message received from %s: %d bytes: %s", client_socket_ip, (int) count, buffer);
         char buffer_copy[BUFFER_SIZE_IN_BYTES] = {};
         strcpy(buffer_copy, buffer);
         const char *command = strtok(buffer_copy, " ");

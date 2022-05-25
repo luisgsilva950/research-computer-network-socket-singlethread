@@ -1,0 +1,4 @@
+client.dSYM
+server.dSYM
+./client
+./server

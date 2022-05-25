@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
         int client_socket = accept(_socket, client_socket_address, (socklen_t *) &client_socket_address_len);
         if (client_socket < FALSE) error("Error with client socket communication...");
         const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
-        printf("Connection from: %s established!\n", client_socket_ip);
+//        printf("Connection from: %s established!\n", client_socket_ip);
         char buffer[BUFFER_SIZE_IN_BYTES] = {};
         memset(buffer, 0, BUFFER_SIZE_IN_BYTES);
         size_t count = recv(client_socket, buffer, BUFFER_SIZE_IN_BYTES - 1, 0);

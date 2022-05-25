@@ -4,4 +4,7 @@ all:
 	gcc $(CFLAGS) server.c -o server
 test:
 	@bash run_tests.sh 0
+	sleep 5
 	@bash run_tests.sh 1
+	sleep 5
+	@bash run_tests.sh 2

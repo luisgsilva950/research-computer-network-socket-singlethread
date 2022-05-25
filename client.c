@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
         fgets(message, BUFFER_SIZE_IN_BYTES - 1, stdin);
         if (strlen(message) > 0) {
             int message_size = strlen(message) + 1;
-            printf("Sending message: %d bytes: %s", message_size, message);
+            printf("Sending message: %d bytes: %s\n", message_size, message);
             const int count = send(_socket, message, (ssize_t) message_size, 0);
             if (count != message_size) error("Error sending message");
             char buffer[BUFFER_SIZE_IN_BYTES];

@@ -1,0 +1,9 @@
+add sensor 01 02 03 in 01
+add sensor 04 in 01
+add sensor 01 02 03 in 02
+add sensor 04 in 02
+add sensor 01 02 03 in 03
+add sensor 04 in 03
+add sensor 01 02 03 in 04
+add sensor 04 in 04
+kill

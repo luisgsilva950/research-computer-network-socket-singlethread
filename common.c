@@ -418,7 +418,7 @@ void handle_add_message(struct sockaddr *client_socket_address, int client_socke
         }
         response = get_add_success_response(sensors_added, sensors_already_present, equipment_id);
     } else {
-        response = "limit exceeded";
+        response = "limit exceeded\n";
     }
     const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
     int count = send(client_socket, response, strlen(response) + 1, 0);
@@ -498,7 +498,7 @@ void handle_read_message(struct sockaddr *client_socket_address, int client_sock
 }
 
 void handle_invalid_equipment_message(struct sockaddr *client_socket_address, int client_socket) {
-    const char *response = "invalid equipment";
+    const char *response = "invalid equipment\n";
     const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
     int count = send(client_socket, response, strlen(response) + 1, 0);
     printf("Message send for %s: %d bytes: %s", client_socket_ip, (int) count, response);
@@ -507,7 +507,7 @@ void handle_invalid_equipment_message(struct sockaddr *client_socket_address, in
 }
 
 void handle_invalid_sensors_message(struct sockaddr *client_socket_address, int client_socket) {
-    const char *response = "invalid sensor";
+    const char *response = "invalid sensor\n";
     const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
     int count = send(client_socket, response, strlen(response) + 1, 0);
     printf("Message send for %s: %d bytes: %s", client_socket_ip, (int) count, response);

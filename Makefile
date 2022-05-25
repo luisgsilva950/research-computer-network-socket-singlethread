@@ -1,4 +1,4 @@
-CFLAGS = -g
+CFLAGS = -Wall -g
 all:
 	gcc $(CFLAGS) client.c -o client
 	gcc $(CFLAGS) server.c -o server

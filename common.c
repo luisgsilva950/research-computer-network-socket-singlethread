@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <time.h>
 
 static const char *ADD = "add";
 static const char *LIST = "list";
@@ -152,7 +153,7 @@ int *get_sensor_ids_from_message(char *message) {
     memset(sensor_ids, 0, 3 * sizeof(int));
     strcpy(string_aux, message);
     char *token = strtok(string_aux, " ");
-    int is_equipment_id_now = 0;
+    int is_equipment_id_now = FALSE;
     int count_sensors = 0;
     while (token) {
         if (!isalpha(token[0]) && !is_equipment_id_now) {
@@ -160,7 +161,7 @@ int *get_sensor_ids_from_message(char *message) {
             count_sensors = count_sensors + 1;
         }
         if (count_sensors == 2) break;
-        if (is_equal(token, "in")) is_equipment_id_now = 1;
+        if (is_equal(token, "in")) is_equipment_id_now = TRUE;
         token = strtok(NULL, " ");
     }
     return sensor_ids;
@@ -171,10 +172,10 @@ int get_equipment_id_from_message(char *message) {
     strcpy(string_aux, message);
     char *token = strtok(string_aux, " ");
     int equipment_id = NOT_FOUND;
-    int is_equipment_id_now = 0;
+    int is_equipment_id_now = FALSE;
     while (token) {
         if (is_equipment_id_now) equipment_id = atoi(token);
-        if (is_equal(token, "in")) is_equipment_id_now = 1;
+        if (is_equal(token, "in")) is_equipment_id_now = TRUE;
         token = strtok(NULL, " ");
     }
     return equipment_id;
@@ -256,6 +257,36 @@ char *get_list_success_response(int *sensors_in_equipment) {
         strcat(response, sensor_as_string);
     }
     strcat(response, "\n");
+    return response;
+}
+
+char *get_read_success_response(int *sensors) {
+    srand(time(NULL));
+    if (sensors == NULL) return "";
+    static char response[BUFFER_SIZE_IN_BYTES] = "";
+    memset(response, 0, BUFFER_SIZE_IN_BYTES);
+    int *sensor;
+    for (sensor = sensors; (int) *sensor != '\0'; sensor++) {
+        char sensor_as_string[4] = "  ";
+        sprintf(sensor_as_string, "0%d ", rand() % 10);
+        strcat(response, sensor_as_string);
+    }
+    strcat(response, "\n");
+    return response;
+}
+
+char *get_sensor_does_not_installed_message(int *sensors) {
+    if (sensors == NULL) return "";
+    static char response[BUFFER_SIZE_IN_BYTES] = "";
+    memset(response, 0, BUFFER_SIZE_IN_BYTES);
+    strcat(response, "sensor(s)");
+    int *sensor;
+    for (sensor = sensors; (int) *sensor != '\0'; sensor++) {
+        char sensor_as_string[4] = "  ";
+        sprintf(sensor_as_string, " 0%d", (int) *sensor);
+        strcat(response, sensor_as_string);
+    }
+    strcat(response, " not installed\n");
     return response;
 }
 
@@ -347,6 +378,27 @@ void handle_list_message(struct sockaddr *client_socket_address, int client_sock
         response = "none";
     } else {
         response = get_list_success_response(sensor_ids);
+    }
+    const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
+    int count = send(client_socket, response, strlen(response) + 1, 0);
+    printf("Message send for %s: %d bytes: %s\n", client_socket_ip, (int) count, response);
+    if (count != strlen(response) + 1) error("Error sending response message...");
+    close(client_socket);
+}
+
+void handle_read_message(struct sockaddr *client_socket_address, int client_socket, struct order_context *equipments,
+                         int *sensor_ids, int equipment_id) {
+    int *sensor_id;
+    int *not_installed_sensors = malloc(sizeof(int));
+    int not_installed_sensors_count = 0;
+    char *response = get_read_success_response(sensor_ids);
+    for (sensor_id = sensor_ids; *sensor_id != '\0'; sensor_id++) {
+        if (!is_sensor_present_on_equipment(equipments, (int) *sensor_id, equipment_id)) {
+            not_installed_sensors = realloc(not_installed_sensors, (not_installed_sensors_count + 1) * sizeof(int));
+            not_installed_sensors[not_installed_sensors_count] = (int) *sensor_id;
+            not_installed_sensors_count = not_installed_sensors_count + 1;
+            response = get_sensor_does_not_installed_message(not_installed_sensors);
+        }
     }
     const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
     int count = send(client_socket, response, strlen(response) + 1, 0);

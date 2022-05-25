@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     if (argc < 3) print_client_usage_pattern();
     struct socket_context context = initialize_client_socket(argv[1], argv[2]);
     int _socket = context.socket;
-    char *message = "list sensors in 2";
+    char *message = "read 01 04 in 2";
     int message_size = strlen(message) + 1;
     printf("Sending message: %s! \n", message);
     const int count = send(_socket, message, (ssize_t) message_size, 0);

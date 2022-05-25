@@ -36,20 +36,8 @@ int main(int argc, char *argv[]) {
         if (is_equal(command, LIST)) {
             handle_list_message(client_socket_address, client_socket, equipments, equipment_id);
         }
-//        if (is_equal(command, REMOVE)) {
-//            const int sensor_id = (int) buf[11] - ASCII_INTEGER_START_INDEX;
-//            const int equipment_id = (int) buf[16] - ASCII_INTEGER_START_INDEX;
-//            char response_buffer[BUFFER_SIZE_IN_BYTES] = {};
-//            struct order_context order;
-//            order.equipment_id = equipment_id;
-//            order.sensor_id = sensor_id;
-//            equipments[SERVER_EQUIPMENTS_COUNT] = order;
-//            sprintf(response_buffer, "sensor %d added\n", sensor_id);
-//            count = send(client_socket, response_buffer, strlen(response_buffer) + 1, 0);
-//            printf("Message send for %s: %d bytes: %s\n", client_socket_ip, (int) count, response_buffer);
-//            if (count != strlen(response_buffer) + 1) error("Error sending response message...");
-//            close(client_socket);
-//        }
-//        sprintf(buf, "remote endpoint: %s\n", request_buffer);
+        if (is_equal(command, READ)) {
+            handle_read_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
+        }
     }
 }

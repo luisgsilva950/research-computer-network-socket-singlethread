@@ -60,7 +60,7 @@ void print_client_usage_pattern() {
     exit(EXIT_FAILURE);
 }
 
-enum Boolean parse_client_address(const char *raw_address, const char *raw_port, struct sockaddr_storage *storage) {
+int parse_client_address(const char *raw_address, const char *raw_port, struct sockaddr_storage *storage) {
     if (raw_address == NULL) return FALSE;
     int PORT_NUMBER = atoi(raw_port);
     if (PORT_NUMBER == 0) return FALSE;

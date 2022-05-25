@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <sys/socket.h>
 #include <strings.h>
 #include "common.c"
@@ -17,27 +16,33 @@ int main(int argc, char *argv[]) {
         int client_socket = accept(_socket, client_socket_address, (socklen_t *) &client_socket_address_len);
         if (client_socket < FALSE) error("Error with client socket communication...");
         const char *client_socket_ip = inet_ntoa(((struct sockaddr_in *) &client_socket_address)->sin_addr);
-//        printf("Connection from: %s established!\n", client_socket_ip);
+        printf("Connection from: %s established!\n", client_socket_ip);
         char buffer[BUFFER_SIZE_IN_BYTES] = {};
         memset(buffer, 0, BUFFER_SIZE_IN_BYTES);
-        size_t count = recv(client_socket, buffer, BUFFER_SIZE_IN_BYTES - 1, 0);
+        ssize_t count = recv(client_socket, buffer, BUFFER_SIZE_IN_BYTES - 1, 0);
         printf("Message received from %s: %d bytes: %s", client_socket_ip, (int) count, buffer);
         char buffer_copy[BUFFER_SIZE_IN_BYTES] = {};
         strcpy(buffer_copy, buffer);
         const char *command = strtok(buffer_copy, " ");
+
+        if (is_equal(command, "kill")) exit(EXIT_SUCCESS);
+
         sensor_ids = get_sensor_ids_from_message(buffer);
         int equipment_id = get_equipment_id_from_message(buffer);
-        if (is_equal(command, ADD)) {
+
+        if (equipment_id < 1 || equipment_id > 4)
+            handle_invalid_equipment_message(client_socket_address, client_socket);
+        if (is_invalid_sensors(sensor_ids))
+            handle_invalid_sensors_message(client_socket_address, client_socket);
+
+        if (is_equal(command, ADD))
             handle_add_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
-        }
-        if (is_equal(command, REMOVE)) {
+        if (is_equal(command, REMOVE))
             handle_remove_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
-        }
-        if (is_equal(command, LIST)) {
+        if (is_equal(command, LIST))
             handle_list_message(client_socket_address, client_socket, equipments, equipment_id);
-        }
-        if (is_equal(command, READ)) {
+        if (is_equal(command, READ))
             handle_read_message(client_socket_address, client_socket, equipments, sensor_ids, equipment_id);
-        }
+        close(client_socket);
     }
 }

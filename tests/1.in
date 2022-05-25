@@ -4,3 +4,4 @@ list sensors in 01
 read 01 03 in 01
 read 01 in 01
 read 01 04 in 01
+kill

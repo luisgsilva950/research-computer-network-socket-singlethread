@@ -25,7 +25,12 @@ int main(int argc, char *argv[]) {
         strcpy(buffer_copy, buffer);
         const char *command = strtok(buffer_copy, " ");
 
-        if (is_equal(command, "kill")) exit(EXIT_SUCCESS);
+        printf("Message received from %s: command is %s", client_socket_ip, command);
+        printf("%d %d %d\n", is_equal(command, "kill"), is_equal(command, "kill\n"), is_equal(command, "\n"));
+        if (is_equal(command, "kill") || is_equal(command, "kill\n") || is_equal(command, "\n")) {
+            close(client_socket);
+            exit(EXIT_SUCCESS);
+        }
 
         sensor_ids = get_sensor_ids_from_message(buffer);
         int equipment_id = get_equipment_id_from_message(buffer);
